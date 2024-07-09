@@ -1,0 +1,92 @@
+/* src/App.css */
+.App {
+  text-align: center;
+  font-family: 'Arial, sans-serif';
+  background: linear-gradient(135deg, #72EDF2 10%, #5151E5 100%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+  padding: 20px;
+}
+
+.App-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 40px; /* Increase padding to provide more space for the content */
+  background-color: #282c34;
+  color: white;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  box-sizing: border-box;
+}
+
+.App-header-right {
+  display: flex;
+  align-items: center;
+}
+
+.App-header-right > *:not(:last-child) {
+  margin-right: 20px; /* Add space between the profile picture and logout button */
+}
+
+.App-title {
+  font-size: 3em;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  background-color: #ff6347;
+  background: -webkit-linear-gradient(to right, #e8d33f, #06D6A0, #e8d33f);
+  background: -moz-linear-gradient(to right, #e8d33f, #06D6A0, #e8d33f);
+  background: linear-gradient(to right, #e8d33f, #06D6A0, #e8d33f);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.App-title-link {
+  text-decoration: none;
+}
+
+
+.App-tagline {
+  font-size: 1.2em;
+  margin-top: 10px;
+}
+
+.App-points {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+}
+
+.App-point {
+  font-size: 1.2em;
+  margin: 5px 0;
+}
+
+.App-button {
+  font-size: 1.2em;
+  color: #fff;
+  background-color: #ff6347;
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 5px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s ease;
+}
+
+.App-button:hover {
+  background-color: #ff4500;
+}
+
+main {
+  flex: 1;
+  padding-top: 120px; /* Adjust this value if needed to match the height of your header */
+}

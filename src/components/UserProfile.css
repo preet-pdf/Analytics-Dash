@@ -1,0 +1,41 @@
+.UserProfile {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .UserProfile-picture {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  
+  .UserProfile-dropdown {
+    position: absolute;
+    top: 50px;
+    right: 0;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    width: 200px;
+    z-index: 1000;
+  }
+  
+  .UserProfile-dropdown img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+  }
+  
+  .UserProfile-dropdown h2 {
+    margin: 10px 0 5px;
+    font-size: 18px;
+  }
+  
+  .UserProfile-dropdown p {
+    margin: 0;
+    font-size: 14px;
+    color: #666;
+  }
