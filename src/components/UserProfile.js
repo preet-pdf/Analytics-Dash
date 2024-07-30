@@ -52,8 +52,6 @@ const UserProfile = () => {
         },
         body: JSON.stringify({ toggleState: !toggleState }),
       });
-      const data = await response.json();
-      setToggleState(data.toggleState);
     } catch (error) {
       console.error('Error toggling state:', error);
     }
@@ -72,8 +70,6 @@ const UserProfile = () => {
         },
         body: JSON.stringify({ toggleStateForAlert: !toggleStateForAlert }),
       });
-      const data = await response.json();
-      setToggleStateForAlert(data.toggleStateForAlert);
     } catch (error) {
       console.error('Error toggling state:', error);
     }
