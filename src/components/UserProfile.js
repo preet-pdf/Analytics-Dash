@@ -8,6 +8,7 @@ const UserProfile = () => {
   const { user, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [toggleState, setToggleState] = useState(false);
+  const [toggleStateForAlert, setToggleStateForAlert] = useState(false);
 
   const roles = user?.['https://test/sunday/roles'] || [];
   const hasCreateUserRole = roles.includes('menu-admin');
@@ -16,6 +17,7 @@ const UserProfile = () => {
     const fetchToggleState = async () => {
       try {
         const token = await getAccessTokenSilently();
+        console.log(token);
         const response = await fetch('http://localhost:3000/your-endpoint', {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -23,6 +25,7 @@ const UserProfile = () => {
         });
         const data = await response.json();
         setToggleState(data.toggleState);
+        setToggleStateForAlert(data.toggleStateForAlert)
       } catch (error) {
         console.error('Error fetching toggle state:', error);
       }
@@ -38,7 +41,10 @@ const UserProfile = () => {
   const handleToggle = async () => {
     try {
       const token = await getAccessTokenSilently();
-      const response = await fetch('http://localhost:3000/your-endpoint', {
+      console.log(token);
+      setToggleState(!toggleState);
+      const url = 'http://localhost:8000/rule/update_rule?status='+toggleState;
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -52,6 +58,27 @@ const UserProfile = () => {
       console.error('Error toggling state:', error);
     }
   };
+
+  const handleToggleForAlert = async () => {
+    try {
+      const token = await getAccessTokenSilently();
+      setToggleStateForAlert(!toggleStateForAlert);
+      const url = 'http://localhost:8000/alert/update_alert?status='+toggleStateForAlert;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ toggleStateForAlert: !toggleStateForAlert }),
+      });
+      const data = await response.json();
+      setToggleStateForAlert(data.toggleStateForAlert);
+    } catch (error) {
+      console.error('Error toggling state:', error);
+    }
+  };
+
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
@@ -93,7 +120,14 @@ const UserProfile = () => {
                 className="UserProfile-toggle-button"
                 onClick={handleToggle}
               >
-                Generate Alerts: {toggleState ? 'ON' : 'OFF'}
+                Stop Rules: {toggleState ? 'Yes' : 'No'}
+              </button>
+              <hr></hr>
+              <button
+                className="UserProfile-toggle-button"
+                onClick={handleToggleForAlert}
+              >
+                Stop Alerts: {toggleStateForAlert ? 'Yes' : 'No'}
               </button>
               <hr></hr>
               <Link to="/list-rules">

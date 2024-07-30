@@ -1,38 +1,93 @@
-.CreateUser {
-    padding: 20px;
-    background: #f4f4f4;
-    border-radius: 5px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-  
-  .CreateUser h2 {
-    margin-bottom: 20px;
-  }
-  
+body {
+  background-color: #f0f2f5;
+  font-family: Arial, sans-serif;
+}
+
+.container {
+  max-width: 800px;
+  margin: auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.form-group {
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.form-group input,
+.form-group select {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+button {
+  padding: 10px 20px;
+  background: #ff6347;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+button:hover {
+  background: #4caf50;
+}
+ul {
+  color: #000;
+}
+ul.list {
+  color: #000;
+}
+
+.permission-list {
+  max-height: 200px; /* Adjust the height as needed */
+  overflow-y: auto;
+  border: 1px solid #ddd; /* Optional: Add a border for better visibility */
+  padding: 10px; /* Optional: Add padding for better appearance */
+  color: #000; /* Ensure text color is black */
+}
+
+.add-button {
+  background: #ff4500;
+}
+
+.add-button:hover {
+  background: #45a049;
+}
+
+.buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.form-section {
+  margin-bottom: 30px;
+}
+
+@media (max-width: 600px) {
   .form-group {
-    margin-bottom: 15px;
+      flex-direction: column;
   }
-  
-  .form-group label {
-    display: block;
-    margin-bottom: 5px;
+
+  .buttons {
+      flex-direction: column;
   }
-  
-  .form-group input {
-    width: 100%;
-    padding: 8px;
-    box-sizing: border-box;
-  }
-  
-  button {
-    padding: 10px 20px;
-    background: #ff6347;
-    color: white;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
-  }
-  
-  button:hover {
-    background: #ff4500;
-  }
+}
