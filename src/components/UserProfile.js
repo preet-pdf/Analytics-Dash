@@ -3,6 +3,8 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { Link } from 'react-router-dom';
 import './UserProfile.css';
 import Loading from './Loading';
+import useAuditEvent from './useAuditEvent';
+import useSessionTime from './useSessionTime';
 
 const UserProfile = () => {
   const { user, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
@@ -13,6 +15,9 @@ const UserProfile = () => {
   const roles = user?.['https://test/sunday/roles'] || [];
   const hasCreateUserRole = roles.includes('menu-admin');
   
+  const sendAuditEvent = useAuditEvent();
+  useSessionTime();
+
   useEffect(() => {
     const fetchToggleState = async () => {
       try {
@@ -35,14 +40,17 @@ const UserProfile = () => {
       fetchToggleState();
     }
   }, [isAuthenticated, getAccessTokenSilently]);
+
   if (isLoading) {
     return <Loading />;
   }
+
   const handleToggle = async () => {
     try {
       const token = await getAccessTokenSilently();
       console.log(token);
       setToggleState(!toggleState);
+      sendAuditEvent('rule_toggle_button', 'rule_' + !toggleState);
       const url = 'http://localhost:8000/rule/update_rule?status='+toggleState;
       const response = await fetch(url, {
         method: 'POST',
@@ -52,6 +60,7 @@ const UserProfile = () => {
         },
         body: JSON.stringify({ toggleState: !toggleState }),
       });
+      
     } catch (error) {
       console.error('Error toggling state:', error);
     }
@@ -61,6 +70,7 @@ const UserProfile = () => {
     try {
       const token = await getAccessTokenSilently();
       setToggleStateForAlert(!toggleStateForAlert);
+      sendAuditEvent('alert_toggle_button', 'alert_'+!toggleStateForAlert);
       const url = 'http://localhost:8000/alert/update_alert?status='+toggleStateForAlert;
       const response = await fetch(url, {
         method: 'POST',
@@ -70,14 +80,15 @@ const UserProfile = () => {
         },
         body: JSON.stringify({ toggleStateForAlert: !toggleStateForAlert }),
       });
+      
     } catch (error) {
       console.error('Error toggling state:', error);
     }
   };
 
-
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
+    sendAuditEvent('dropdown_toggle', isDropdownOpen);
   };
 
   if (!isAuthenticated) {
@@ -107,7 +118,7 @@ const UserProfile = () => {
           {hasCreateUserRole && (
             <div>
               <Link to="/createuser">
-                <button className="UserProfile-createuser-button">
+                <button className="UserProfile-createuser-button" onClick={() => sendAuditEvent('create_user_button_click', 'Create User')}>
                   Create User
                 </button>
               </Link>
@@ -127,7 +138,7 @@ const UserProfile = () => {
               </button>
               <hr></hr>
               <Link to="/list-rules">
-                <button className="UserProfile-createuser-button">
+                <button className="UserProfile-createuser-button" onClick={() => sendAuditEvent('list_rules_button_click', 'List Rules')}>
                   List Rules
                 </button>
               </Link>

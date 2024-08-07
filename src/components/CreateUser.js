@@ -2,9 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import './CreateUser.css';
 import Loading from './Loading';
+import useAuditEvent from './useAuditEvent'; 
+import useSessionTime from './useSessionTime';
 
 const CreateUser = () => {
   const { getAccessTokenSilently, isLoading } = useAuth0();
+  const sendAuditEvent = useAuditEvent();
+  useSessionTime();
+
   const [formData, setFormData] = useState({
     email: '',
     phone_number: '',
@@ -40,12 +45,42 @@ const CreateUser = () => {
     resource_server_identifier: '',
     permission_name: '',
   }]);
-  
 
+  const [typingTimeout, setTypingTimeout] = useState(null);
+
+  const debounce = (callback, delay) => {
+    return (...args) => {
+      if (typingTimeout) {
+        clearTimeout(typingTimeout);
+      }
+      setTypingTimeout(setTimeout(() => {
+        callback(...args);
+      }, delay));
+    };
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prevData) => ({ ...prevData, [name]: value }));
+    debounce(() => sendAuditEvent('input_CreateUser', value), 5000)();
+  };
+
+  const handleRuleChange = (e) => {
+    const { name, value } = e.target;
+    setRuleData((prevData) => ({ ...prevData, [name]: value }));
+    debounce(() => sendAuditEvent('input_RuleChange', value ), 5000)();
+  };
+
+  const handlePermissionChange = (e) => {
+    const { name, value } = e.target;
+    setRolePermissions((prevData) => ({ ...prevData, [name]: value }));
+    debounce(() => sendAuditEvent('input_PermissionChange', value ), 5000)();
+  };
 
   const handleRoleChangeMerge = (e) => {
     const { name, value } = e.target;
     setNewRoleMerge((prevData) => ({ ...prevData, [name]: value }));
+    debounce(() => sendAuditEvent('input_RoleChangeMerge', value ), 5000)();
   };
 
   const handlePermissionChangeMerge = (index, e) => {
@@ -53,21 +88,18 @@ const CreateUser = () => {
     const newPermissions = [...rolePermissionsMerge];
     newPermissions[index][name] = value;
     setRolePermissionsMerge(newPermissions);
+    debounce(() => sendAuditEvent('input_PermissionChangeMerge', value), 5000)();
   };
 
   const addPermissionField = () => {
     setRolePermissionsMerge([...rolePermissionsMerge, { resource_server_identifier: '', permission_name: '' }]);
   };
-  
 
   const removePermissionField = (index) => {
     const newPermissions = [...rolePermissionsMerge];
     newPermissions.splice(index, 1);
     setRolePermissionsMerge(newPermissions);
   };
-  
-
-
 
   useEffect(() => {
     // Fetch connections on component mount
@@ -108,7 +140,6 @@ const CreateUser = () => {
       }
     };
 
-
     fetchConnections();
     fetchRoles();
     fetchPermissions();
@@ -118,26 +149,11 @@ const CreateUser = () => {
     return <Loading />;
   }
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({ ...prevData, [name]: value }));
-  };
-
-  const handleRuleChange = (e) => {
-    const { name, value } = e.target;
-    setRuleData((prevData) => ({ ...prevData, [name]: value }));
-  };
-
-  const handlePermissionChange = (e) => {
-    const { name, value } = e.target;
-    setRolePermissions((prevData) => ({ ...prevData, [name]: value }));
-  };
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
+      sendAuditEvent('create_user_button', formData.email); 
       const token = await getAccessTokenSilently({
         audience: 'https://login.auth0.com/api/v2/',
         scope: 'create:users'
@@ -150,7 +166,6 @@ const CreateUser = () => {
           'Content-Type': 'application/json',
           // 'Authorization': `Bearer ${token}`,
         },
-       
         body: JSON.stringify({ user: formData, role_assignment: { role_id: formData.role_id } }),
       });
 
@@ -173,6 +188,7 @@ const CreateUser = () => {
       permission: rolePermissionsMerge, // This should be an array
     };
     try {
+      sendAuditEvent('create_role_and_assign_permission_button', newRoleMerge.name); // Audit event
       const response = await fetch('http://localhost:8000/role/create_role_and_assign_permission', {
         method: 'POST',
         headers: {
@@ -193,13 +209,12 @@ const CreateUser = () => {
       alert('Error creating role and permissions.');
     }
   };
-  
-
 
   const handleRuleSubmit = async (e) => {
     e.preventDefault();
 
     try {
+      sendAuditEvent('create_role_button', ruleData.name); // Audit event
       const response = await fetch('http://localhost:8000/role/create_role', {
         method: 'POST',
         headers: {
@@ -224,6 +239,7 @@ const CreateUser = () => {
   const handlePermissionSubmit = async (e) => {
     e.preventDefault();
     try {
+      sendAuditEvent('assign_permission_button', rolePermissions.permission_name); // Audit event
       const response = await fetch(`http://localhost:8000/role/assign-permission/${rolePermissions.role_id}`, {
         method: 'POST',
         headers: {
@@ -244,13 +260,6 @@ const CreateUser = () => {
     }
   };
 
-
-
-
-  if (isLoading) {
-    return <Loading />;
-  }
-
   return (
     <div className="container">
       <div className="CreateUser">
@@ -262,7 +271,7 @@ const CreateUser = () => {
           </div>
           <div className="form-group">
             <label>Phone Number:</label>
-            <input type="text" name="phone_number" value={formData.phone_number} onChange={handleChange} />
+            <input type="tel" name="phone_number" value={formData.phone_number} onChange={handleChange} />
           </div>
           <div className="form-group">
             <label>Given Name:</label>
