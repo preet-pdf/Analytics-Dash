@@ -102,34 +102,53 @@ const CreateUser = () => {
   };
 
   useEffect(() => {
-    // Fetch connections on component mount
     const fetchConnections = async () => {
       try {
-        const response = await fetch('http://localhost:8000/user/list-connections');
+        const token = await getAccessTokenSilently({
+          audience: 'https://login.auth0.com/api/v2/',
+          scope: 'read:connections',
+        });
+        const response = await fetch('http://localhost:8000/user/list-connections', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         const data = await response.json();
         setConnections(data);
       } catch (error) {
         console.error('Error fetching connections:', error);
       }
     };
-
-    // Fetch roles on component mount
+  
     const fetchRoles = async () => {
       try {
-        const response = await fetch('http://localhost:8000/role/get_role');
+        const token = await getAccessTokenSilently({
+          audience: 'https://login.auth0.com/api/v2/',
+          scope: 'read:roles',
+        });
+        const response = await fetch('http://localhost:8000/role/get_role', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         const data = await response.json();
         setRoles(data.response.roles);
       } catch (error) {
         console.error('Error fetching roles:', error);
       }
     };
-
+  
     const fetchPermissions = async () => {
       try {
+        const token = await getAccessTokenSilently({
+          audience: 'https://login.auth0.com/api/v2/',
+          scope: 'read:permissions',
+        });
         const response = await fetch('http://localhost:8000/role/list-permissions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
           },
         });
         const data = await response.json();
@@ -139,11 +158,12 @@ const CreateUser = () => {
         console.error('Error fetching permissions:', error);
       }
     };
-
+  
     fetchConnections();
     fetchRoles();
     fetchPermissions();
-  }, []);
+  }, [getAccessTokenSilently]);
+  
 
   if (isLoading) {
     return <Loading />;
@@ -151,24 +171,20 @@ const CreateUser = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
-      sendAuditEvent('create_user_button', formData.email); 
+      sendAuditEvent('create_user_button', formData.email);
       const token = await getAccessTokenSilently({
         audience: 'https://login.auth0.com/api/v2/',
-        scope: 'create:users'
+        scope: 'create:users',
       });
-      console.log(token);
-      console.log(formData);
       const response = await fetch('http://localhost:8000/user/create-user', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // 'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ user: formData, role_assignment: { role_id: formData.role_id } }),
       });
-
       const data = await response.json();
       if (response.ok) {
         alert('User created successfully!');
@@ -180,27 +196,29 @@ const CreateUser = () => {
       alert('Error creating user.');
     }
   };
-
+  
   const handleSubmitMerge = async (e) => {
     e.preventDefault();
-    const payload = {
-      role: newRoleMerge,
-      permission: rolePermissionsMerge, // This should be an array
-    };
     try {
-      sendAuditEvent('create_role_and_assign_permission_button', newRoleMerge.name); // Audit event
+      sendAuditEvent('create_role_and_assign_permission_button', newRoleMerge.name);
+      const token = await getAccessTokenSilently({
+        audience: 'https://login.auth0.com/api/v2/',
+        scope: 'create:roles',
+      });
       const response = await fetch('http://localhost:8000/role/create_role_and_assign_permission', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          role: newRoleMerge,
+          permission: rolePermissionsMerge,
+        }),
       });
-  
       const data = await response.json();
       if (response.ok) {
         alert('Role and permissions created successfully!');
-        // fetchRoles(); // Refresh the roles list
       } else {
         alert(`Error: ${data.detail}`);
       }
@@ -209,24 +227,26 @@ const CreateUser = () => {
       alert('Error creating role and permissions.');
     }
   };
-
+  
   const handleRuleSubmit = async (e) => {
     e.preventDefault();
-
     try {
-      sendAuditEvent('create_role_button', ruleData.name); // Audit event
+      sendAuditEvent('create_role_button', ruleData.name);
+      const token = await getAccessTokenSilently({
+        audience: 'https://login.auth0.com/api/v2/',
+        scope: 'create:roles',
+      });
       const response = await fetch('http://localhost:8000/role/create_role', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(ruleData),
       });
-
       const data = await response.json();
       if (response.ok) {
         alert('Role created successfully!');
-        setRuleData({ name: '', description: '' }); // Clear form after successful creation
       } else {
         alert(`Error: ${data.detail}`);
       }
@@ -235,19 +255,23 @@ const CreateUser = () => {
       alert('Error creating role.');
     }
   };
-
+  
   const handlePermissionSubmit = async (e) => {
     e.preventDefault();
     try {
-      sendAuditEvent('assign_permission_button', rolePermissions.permission_name); // Audit event
+      sendAuditEvent('assign_permission_button', rolePermissions.permission_name);
+      const token = await getAccessTokenSilently({
+        audience: 'https://login.auth0.com/api/v2/',
+        scope: 'assign:permissions',
+      });
       const response = await fetch(`http://localhost:8000/role/assign-permission/${rolePermissions.role_id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(rolePermissions),
       });
-
       const data = await response.json();
       if (response.ok) {
         alert('Permission assigned successfully!');
@@ -259,6 +283,7 @@ const CreateUser = () => {
       alert('Error assigning permission.');
     }
   };
+  
 
   return (
     <div className="container">

@@ -1,49 +1,43 @@
-
-import React, { useMemo } from 'react';
-import {
-  useTable,
-  usePagination,
-  useFilters,
-} from 'react-table';
+import React, { useEffect, useState, useMemo } from 'react';
+import { useTable, usePagination } from 'react-table';
+import { useAuth0 } from '@auth0/auth0-react';
 import './DataTable.css';
+import Loading from './Loading';
 
 const DataTable = () => {
-  // Sample dummy data
-  const data = useMemo(
-    () => [
-      {
-        auditEvent: {
-          eventType: 'Login',
-          eventData: 'User logged in',
-          eventTime: new Date().toLocaleString(),
-        },
-        ruleName: 'Login Rule',
-        ruleDescription: 'Rule for login events',
-        createdTime: Date.now(),
-      },
-      {
-        auditEvent: {
-          eventType: 'Logout',
-          eventData: 'User logged out',
-          eventTime: new Date().toLocaleString(),
-        },
-        ruleName: 'Logout Rule',
-        ruleDescription: 'Rule for logout events',
-        createdTime: Date.now(),
-      },
-      {
-        auditEvent: {
-          eventType: 'Data Access',
-          eventData: 'User accessed data',
-          eventTime: new Date().toLocaleString(),
-        },
-        ruleName: 'Data Access Rule',
-        ruleDescription: 'Rule for data access events',
-        createdTime: Date.now(),
-      },
-    ],
-    []
-  );
+  const { getAccessTokenSilently } = useAuth0();
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const token = await getAccessTokenSilently();
+        const response = await fetch('http://localhost:8080/audit', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch data');
+        }
+
+        const result = await response.json();
+        setData(result);
+      } catch (err) {
+        setError('Error fetching data');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [getAccessTokenSilently]);
 
   const columns = useMemo(
     () => [
@@ -58,6 +52,7 @@ const DataTable = () => {
       {
         Header: 'Event Time',
         accessor: 'auditEvent.eventTime',
+        Cell: ({ value }) => new Date(value).toUTCString(),
       },
       {
         Header: 'Rule Name',
@@ -70,6 +65,7 @@ const DataTable = () => {
       {
         Header: 'Created Time',
         accessor: 'createdTime',
+        Cell: ({ value }) => new Date(value).toLocaleDateString(),
       },
     ],
     []
@@ -96,18 +92,56 @@ const DataTable = () => {
       data,
       initialState: { pageIndex: 0 },
     },
-    useFilters,
     usePagination
   );
 
+  const downloadCSV = () => {
+    const csvData = data.map(row => ({
+      EventType: row.auditEvent.eventType,
+      EventData: row.auditEvent.eventData,
+      EventTime: new Date(row.auditEvent.eventTime).toUTCString(),
+      RuleName: row.ruleName,
+      RuleDescription: row.ruleDescription,
+      CreatedTime: new Date(row.createdTime).toLocaleDateString(),
+    }));
+
+    const csvContent =
+      'data:text/csv;charset=utf-8,' +
+      [Object.keys(csvData[0])].concat(csvData.map(e => Object.values(e))).map(e => e.join(',')).join('\n');
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', 'audit_data.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  if (loading) {
+    return <Loading />;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
+
   return (
     <div>
+      <div className="table-header">
+        <h2 style={{ flex: 1 }} className="App-title">Alert Data</h2>
+        <button onClick={downloadCSV} style={{ marginLeft: '20px' }}>
+          Download Alerts Data
+        </button>
+      </div>
       <table {...getTableProps()} className="table">
         <thead>
           {headerGroups.map(headerGroup => (
-            <tr {...headerGroup.getHeaderGroupProps()}>
+            <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
               {headerGroup.headers.map(column => (
-                <th {...column.getHeaderProps()}>{column.render('Header')}</th>
+                <th {...column.getHeaderProps()} key={column.id}>
+                  {column.render('Header')}
+                </th>
               ))}
             </tr>
           ))}
@@ -116,9 +150,11 @@ const DataTable = () => {
           {page.map(row => {
             prepareRow(row);
             return (
-              <tr {...row.getRowProps()}>
+              <tr {...row.getRowProps()} key={row.id}>
                 {row.cells.map(cell => (
-                  <td {...cell.getCellProps()}>{cell.render('Cell')}</td>
+                  <td {...cell.getCellProps()} key={cell.column.id}>
+                    {cell.render('Cell')}
+                  </td>
                 ))}
               </tr>
             );
@@ -158,19 +194,18 @@ const DataTable = () => {
         </span>{' '}
         <select
           value={pageSize}
-          onChange={e => {
-            setPageSize(Number(e.target.value));
-          }}
+          onChange={e => setPageSize(Number(e.target.value))}
         >
-          {[10, 20, 30, 40, 50].map(pageSize => (
-            <option key={pageSize} value={pageSize}>
-              Show {pageSize}
+          {[10, 20, 30, 40, 50].map(size => (
+            <option key={size} value={size}>
+              Show {size}
             </option>
           ))}
         </select>
       </div>
     </div>
   );
+  
 };
 
 export default DataTable;

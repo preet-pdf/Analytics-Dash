@@ -1,81 +1,104 @@
 import React, { useState, useEffect } from 'react';
 import './RulesList.css';
-import { useAuth0 } from '@auth0/auth0-react';
 import Loading from './Loading';
+import { useAuth0 } from '@auth0/auth0-react';
 
-const dummyRules = [
-  {
-    id: 1,
-    name: 'Rule 1',
-    description: 'This is rule 1',
-    type: 'Type A',
-    enabled: true,
-  },
-  {
-    id: 2,
-    name: 'Rule 2',
-    description: 'This is rule 2',
-    type: 'Type B',
-    enabled: false,
-  },
-  {
-    id: 3,
-    name: 'Rule 3',
-    description: 'This is rule 3',
-    type: 'Type C',
-    enabled: true,
-  },
-];
 
 const ListRules = () => {
-  const [rules, setRules] = useState(dummyRules);
-  const { isLoading } = useAuth0();
+  const [rules, setRules] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { getAccessTokenSilently } = useAuth0();
+  
 
+  // Fetch rules from API
   useEffect(() => {
     const fetchRules = async () => {
       try {
-        const response = await fetch('http://localhost:3000/rules');
+        const accessToken = await getAccessTokenSilently();
+        console.log("AccessToken: ", accessToken);
+
+        const response = await fetch('http://localhost:8080/audit/getRules', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${accessToken}`, // Attach the access token
+            'Content-Type': 'application/json',
+          },
+        });
+
+
+        console.log(response);
+        if (!response.ok) {
+          throw new Error('Failed to fetch rules');
+        }
         const data = await response.json();
-        setRules(data);
+        const formattedRules = formatRules(data.rules);
+        setRules(formattedRules);
+        console.log(rules);
       } catch (error) {
-        console.error('Error fetching rules:', error);
+        setError(error.message);
+      } finally {
+        setLoading(false);
       }
     };
-
-    // Uncomment the line below to fetch rules from the backend
-    // fetchRules();
+    fetchRules();
   }, []);
-  if (isLoading) {
-    return <Loading />;
-  }
-  const handleToggle = (ruleId) => {
+
+  // Format the rules for easier rendering
+  const formatRules = (rules) => {
+    const formatted = [];
+    Object.keys(rules).forEach((ruleType) => {
+      Object.keys(rules[ruleType]).forEach((ruleName) => {
+        formatted.push({
+          type: ruleType,
+          name: ruleName,
+          description: rules[ruleType][ruleName],
+          enabled: true, // Default value for now
+        });
+      });
+    });
+    return formatted;
+  };
+
+  const handleToggle = (ruleName) => {
     setRules((prevRules) =>
       prevRules.map((rule) =>
-        rule.id === ruleId ? { ...rule, enabled: !rule.enabled } : rule
+        rule.name === ruleName ? { ...rule, enabled: !rule.enabled } : rule
       )
     );
   };
 
+  if (loading) {
+    return <Loading />;
+  }
+
+  if (error) {
+    return <div className="error">Error: {error}</div>;
+  }
+
   return (
     <div className="RulesList">
-      <h2>Rules List</h2>
-      <table>
+      <h2>Live Rules List</h2>
+      <table className="rules-table">
         <thead>
           <tr>
+            <th>Rule Type</th>
             <th>Rule Name</th>
             <th>Description</th>
-            <th>Type</th>
             <th>Enabled</th>
           </tr>
         </thead>
         <tbody>
           {rules.map((rule) => (
-            <tr key={rule.id}>
+            <tr key={rule.name}>
+              <td>{rule.type}</td>
               <td>{rule.name}</td>
               <td>{rule.description}</td>
-              <td>{rule.type}</td>
               <td>
-                <button onClick={() => handleToggle(rule.id)}>
+                <button
+                  className={`toggle-button ${rule.enabled ? 'enabled' : 'disabled'}`}
+                  onClick={() => handleToggle(rule.name)}
+                >
                   {rule.enabled ? 'Disable' : 'Enable'}
                 </button>
               </td>

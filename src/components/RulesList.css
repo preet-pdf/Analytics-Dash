@@ -1,29 +1,44 @@
 .RulesList {
-    margin: 20px;
-  }
-  
-  .RulesList table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  .RulesList th,
-  .RulesList td {
-    border: 1px solid #ddd;
-    padding: 8px;
-  }
-  
-  .RulesList th {
-    background-color: #f2f2f2;
-    text-align: left;
-  }
-  
-  .RulesList button {
-    padding: 5px 10px;
-    cursor: pointer;
-  }
-  
-  .RulesList button:hover {
-    background-color: #ddd;
-  }
-  
+  padding: 20px;
+  background-color: #f4f4f4;
+}
+
+.rules-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  background-color: #15ba89;
+}
+
+.rules-table th,
+.rules-table td {
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+
+.rules-table th {
+  background-color: #1f4c21;
+  color: rgb(45, 153, 119);
+}
+
+.rules-table tr:nth-child(even) {
+  background-color: #39534b;
+}
+
+.toggle-button {
+  padding: 6px 12px;
+  font-size: 14px;
+  color: #000;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.toggle-button.enabled {
+  background-color: #f44336;
+}
+
+.toggle-button.disabled {
+  background-color: #4CAF50;
+}

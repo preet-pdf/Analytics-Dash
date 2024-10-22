@@ -5,6 +5,7 @@ import LoginButton from './components/signin-page';
 import LogoutButton from './components/logout-button';
 import UserProfile from './components/UserProfile';
 import Loading from './components/Loading';
+import ShowAlertButton from './components/ShowAudit';
 import DataTable from './components/DataTable';
 import { Routes, Route } from 'react-router-dom';
 import CreateUser from './components/CreateUser';
@@ -13,6 +14,7 @@ import { Link } from 'react-router-dom';
 
 function App() {
   const headerLine = "Analytic-Dash";
+  const auditLine = "Audit Data";
   const mainPoints = [
     "Send audit data,",
     "generate alerts,", 
@@ -49,8 +51,14 @@ function App() {
             <Route path="/list-rules" element={<ListRules />} />
             <Route path="/" element={
               <>
-                {isAuthenticated && <DataTable />}
+                {isAuthenticated && (
+                  <><DataTable />
+                  {/* <h1 className="App-title">{auditLine}</h1>
+                  <ShowAlertButton/> */}
+                  </>
+  )}
                 <h2 className="App-tagline"><i>{tagLine}</i></h2>
+                {isAuthenticated && (<><h1 className="App-title">{auditLine}</h1><ShowAlertButton/></>)}
                 <ul className="App-points">
                   {mainPoints.map((point) => (
                     <li key={point} className="App-point">{point}</li>

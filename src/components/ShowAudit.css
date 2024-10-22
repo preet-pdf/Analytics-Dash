@@ -1,0 +1,35 @@
+.audit-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  
+  .audit-table th,
+  .audit-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+  }
+  
+  .audit-table th {
+    background-color: #f2f2f2;
+    text-align: left;
+  }
+  
+  .audit-table h3 {
+    margin-top: 20px;
+    font-size: 18px;
+  }
+  
+
+  .table-header button {
+    padding: 8px 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .table-header button:hover {
+    background-color: #0056b3;
+  }
